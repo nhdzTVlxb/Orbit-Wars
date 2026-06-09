@@ -1,0 +1,566 @@
+7.8s 1 0.00s - Debugger warning: It seems that frozen modules are being used, which may
+7.8s 2 0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+7.8s 3 0.00s - to python to disable frozen modules.
+7.8s 4 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+8.6s 5 0.00s - Debugger warning: It seems that frozen modules are being used, which may
+8.6s 6 0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+8.6s 7 0.00s - to python to disable frozen modules.
+8.6s 8 0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+9.9s 9 Writing main.py
+9.9s 10 [orbit_probe_source] begin orbit_lite source probe
+9.9s 11 [orbit_probe_source] base_exists=True base=/kaggle/input/datasets/slawekbiel/producer-orbit-wars-utils/orbit_lite
+9.9s 12 [orbit_probe_source] file=adapter.py hits=22
+9.9s 13 [orbit_probe_source] adapter.py:1: """Observation/action adapter between the move-list format and tensors.
+9.9s 14 [orbit_probe_source] adapter.py:2:
+9.9s 15 [orbit_probe_source] adapter.py:3: Converts an observation dict (``{"planets": [...], "fleets": [...], ...}``) into
+9.9s 16 [orbit_probe_source] adapter.py:4: the named tensor observation the planner consumes, and converts the planner's
+9.9s 17 [orbit_probe_source] adapter.py:5: sparse launch payload
+9.9s 18 [orbit_probe_source] adapter.py:6: (``{"from_planet_id": [L], "angle": [L], "num_ships": [L], "counts": scalar}``)
+9.9s 19 [orbit_probe_source] adapter.py:7: back into a move list (``[[from_planet_id, angle, ships], ...]``).
+9.9s 20 [orbit_probe_source] adapter.py:8: """
+9.9s 21 [orbit_probe_source] adapter.py:23: from .constants import DEFAULT_EPISODE_STEPS
+9.9s 22 [orbit_probe_source] adapter.py:24:
+9.9s 23 [orbit_probe_source] adapter.py:25:
+9.9s 24 [orbit_probe_source] adapter.py:26: def _infer_player_count_from_obs(planets: list[Any], fleets: list[Any], player_id: int) -> int:
+9.9s 25 [orbit_probe_source] adapter.py:27:     owners: list[int] = [int(player_id)]
+9.9s 26 [orbit_probe_source] adapter.py:28:     for row in planets:
+9.9s 27 [orbit_probe_source] adapter.py:29:         if len(row) >= 2 and int(row[0]) >= 0 and int(row[1]) >= 0:
+9.9s 28 [orbit_probe_source] adapter.py:30:             owners.append(int(row[1]))
+9.9s 29 [orbit_probe_source] adapter.py:31:     for row in fleets:
+9.9s 30 [orbit_probe_source] adapter.py:32:         if len(row) >= 2 and int(row[0]) >= 0 and int(row[1]) >= 0:
+9.9s 31 [orbit_probe_source] adapter.py:33:             owners.append(int(row[1]))
+9.9s 32 [orbit_probe_source] adapter.py:34:     return 4 if max(owners, default=0) >= 2 else 2
+10.0s 33 [orbit_probe_source] adapter.py:35:
+10.0s 34 [orbit_probe_source] adapter.py:36:
+10.0s 35 [orbit_probe_source] adapter.py:46:     Input format::
+10.0s 36 [orbit_probe_source] adapter.py:47:
+10.0s 37 [orbit_probe_source] adapter.py:48:         obs["planets"] = [[planet_id, owner, x, y, radius, ships, production], ...]
+10.0s 38 [orbit_probe_source] adapter.py:49:         obs["fleets"]  = [[fleet_id, owner, x, y, angle, from_id, ships], ...]
+10.0s 39 [orbit_probe_source] adapter.py:50:
+10.0s 40 [orbit_probe_source] adapter.py:51:     Returns a tensor observation dict::
+10.0s 41 [orbit_probe_source] adapter.py:52:
+10.0s 42 [orbit_probe_source] adapter.py:53:         "planets" : [P, 7]            "fleets" : [F, 7]
+10.0s 43 [orbit_probe_source] adapter.py:54:         "initial_planets" : [P, 7]    "comet_planet_ids" : [G*C]
+10.0s 44 [orbit_probe_source] adapter.py:55:         "comets" : nested padded tensors
+10.0s 45 [orbit_probe_source] adapter.py:56:         "player" / "angular_velocity" / "next_fleet_id" / "step" /
+10.0s 46 [orbit_probe_source] adapter.py:57:         "episode_steps" / "remainingOverageTime" : scalars
+10.0s 47 [orbit_probe_source] adapter.py:58:     """
+10.0s 48 [orbit_probe_source] adapter.py:59:     dev = torch.device(device)
+10.0s 49 [orbit_probe_source] adapter.py:60:
+10.0s 50 [orbit_probe_source] adapter.py:61:     planets_raw = obs.get("planets", [])
+10.0s 51 [orbit_probe_source] adapter.py:62:     initial_planets_raw = obs.get("initial_planets", planets_raw)
+10.0s 52 [orbit_probe_source] adapter.py:63:     fleets_raw = obs.get("fleets", [])
+10.0s 53 [orbit_probe_source] adapter.py:64:     comets_raw = obs.get("comets", [])
+10.0s 54 [orbit_probe_source] adapter.py:65:     comet_planet_ids_raw = obs.get("comet_planet_ids", [])
+10.0s 55 [orbit_probe_source] adapter.py:66:     step = int(obs.get("step", 0))
+10.0s 56 [orbit_probe_source] adapter.py:67:     angvel = float(obs.get("angular_velocity", 0.03))
+10.0s 57 [orbit_probe_source] adapter.py:68:     max_steps = int(obs.get("episode_steps", DEFAULT_EPISODE_STEPS))
+10.0s 58 [orbit_probe_source] adapter.py:69:     remaining_overtime = float(obs.get("remainingOverageTime", 2.0))
+10.0s 59 [orbit_probe_source] adapter.py:70:     next_fleet_id = int(obs.get("next_fleet_id", 0))
+10.0s 60 [orbit_probe_source] adapter.py:71:
+10.0s 61 [orbit_probe_source] adapter.py:72:     planet_t = torch.zeros(P, 7, dtype=torch.float32, device=dev)
+10.0s 62 [orbit_probe_source] adapter.py:73:     planet_t[..., 0] = -1.0
+10.0s 63 [orbit_probe_source] adapter.py:74:     for i, p in enumerate(planets_raw[:P]):
+10.0s 64 [orbit_probe_source] adapter.py:75:         pid, owner, x, y, r, ships, prod = p[:7]
+10.0s 65 [orbit_probe_source] adapter.py:93:         initial_planet_t[i, 5] = float(ships)
+10.0s 66 [orbit_probe_source] adapter.py:94:         initial_planet_t[i, 6] = float(prod)
+10.0s 67 [orbit_probe_source] adapter.py:95:
+10.0s 68 [orbit_probe_source] adapter.py:96:     fleet_t = torch.zeros(F, 7, dtype=torch.float32, device=dev)
+10.0s 69 [orbit_probe_source] adapter.py:97:     fleet_t[..., 0] = -1.0
+10.0s 70 [orbit_probe_source] adapter.py:98:     fleet_t[..., 5] = -1.0
+10.0s 71 [orbit_probe_source] adapter.py:99:     for i, f in enumerate(fleets_raw[:F]):
+10.0s 72 [orbit_probe_source] adapter.py:100:         fid, owner, x, y, angle, from_id, ships = f[:7]
+10.0s 73 [orbit_probe_source] adapter.py:101:         fleet_t[i, 0] = float(fid)
+10.0s 74 [orbit_probe_source] adapter.py:102:         fleet_t[i, 1] = float(owner)
+10.0s 75 [orbit_probe_source] adapter.py:103:         fleet_t[i, 2] = float(x)
+10.0s 76 [orbit_probe_source] adapter.py:104:         fleet_t[i, 3] = float(y)
+10.0s 77 [orbit_probe_source] file=constants.py hits=2
+10.0s 78 [orbit_probe_source] constants.py:5: # ---------------------------------------------------------------------------
+10.0s 79 [orbit_probe_source] constants.py:6: B_DEFAULT: int = 1024   # default games per batch
+10.0s 80 [orbit_probe_source] constants.py:7: P_MAX: int = 64         # planet slots per game  (real games have 24-52 planets)
+10.0s 81 [orbit_probe_source] constants.py:8: F_MAX: int = 256        # fleet slots per game
+10.0s 82 [orbit_probe_source] constants.py:9: A: int = 2              # players per game
+10.0s 83 [orbit_probe_source] constants.py:10:
+10.0s 84 [orbit_probe_source] constants.py:11: # ---------------------------------------------------------------------------
+10.0s 85 [orbit_probe_source] constants.py:12: # Physics (must match the game engine)
+10.0s 86 [orbit_probe_source] constants.py:13: # ---------------------------------------------------------------------------
+10.0s 87 [orbit_probe_source] constants.py:50: EARLY_TERM_MARGIN: float = 2.0          # leader_score >= MARGIN * runner_up_score
+10.0s 88 [orbit_probe_source] constants.py:51: EARLY_TERM_STREAK_2P: int = 5           # consecutive turns the lead must hold
+10.0s 89 [orbit_probe_source] constants.py:52: EARLY_TERM_STREAK_4P: int = 20
+10.0s 90 [orbit_probe_source] constants.py:53: EARLY_TERM_PROD_WEIGHT_2P: float = 5.0  # score = 5 * production + 1 * (planet + fleet ships)
+10.0s 91 [orbit_probe_source] constants.py:54: EARLY_TERM_SHIP_WEIGHT_2P: float = 1.0
+10.0s 92 [orbit_probe_source] constants.py:55: EARLY_TERM_PROD_WEIGHT_4P: float = 1.0  # 4p uses production alone
+10.0s 93 [orbit_probe_source] constants.py:56: EARLY_TERM_SHIP_WEIGHT_4P: float = 0.0
+10.0s 94 [orbit_probe_source] constants.py:57:
+10.0s 95 [orbit_probe_source] constants.py:58: # ---------------------------------------------------------------------------
+10.0s 96 [orbit_probe_source] file=distance_cache.py hits=2
+10.0s 97 [orbit_probe_source] distance_cache.py:1: """Cross-k distance cache for the movement-backed planner.
+10.0s 98 [orbit_probe_source] distance_cache.py:2:
+10.0s 99 [orbit_probe_source] distance_cache.py:3: Entry ``cross_dist[k, s, t]`` is the Euclidean distance from planet ``s`` at step
+10.0s 100 [orbit_probe_source] distance_cache.py:4: 0 to planet ``t`` at step ``k`` — the *cross-time* distance a fleet must travel if
+10.0s 101 [orbit_probe_source] distance_cache.py:5: it launches now from ``s`` to intercept ``t`` at time ``k``. For static planets
+10.0s 102 [orbit_probe_source] distance_cache.py:6: this equals same-step pairwise distance; for orbiting sources the cross-time form
+10.0s 103 [orbit_probe_source] distance_cache.py:7: is the geometrically correct quantity for fleet-intercept feasibility. A
+10.0s 104 [orbit_probe_source] distance_cache.py:8: precomputed ``[K+1, P, P]`` window gives exact per-step lookups for free.
+10.0s 105 [orbit_probe_source] distance_cache.py:9: """
+10.0s 106 [orbit_probe_source] distance_cache.py:10:
+10.0s 107 [orbit_probe_source] distance_cache.py:11: from __future__ import annotations
+10.0s 108 [orbit_probe_source] distance_cache.py:12:
+10.0s 109 [orbit_probe_source] file=garrison_launch.py hits=2
+10.0s 110 [orbit_probe_source] garrison_launch.py:1: """What-if-I-launch flow projection over a :class:`PlanetGarrisonStatus`.
+10.0s 111 [orbit_probe_source] garrison_launch.py:2:
+10.0s 112 [orbit_probe_source] garrison_launch.py:3: ``PlanetGarrisonStatus`` is a per-planet ledger of projected owner / ships over a
+10.0s 113 [orbit_probe_source] garrison_launch.py:4: future horizon, computed from the fleets we currently know about, assuming we do
+10.0s 114 [orbit_probe_source] garrison_launch.py:5: nothing. :func:`sparse_launch_flow_delta` answers the forward-looking question an
+10.0s 115 [orbit_probe_source] garrison_launch.py:6: agent faces — *"if I launch these ships, how does each player's net ship flow
+10.0s 116 [orbit_probe_source] garrison_launch.py:7: (production minus combat losses) change?"* — by recomputing the production→combat
+10.0s 117 [orbit_probe_source] garrison_launch.py:8: recurrence only for the planets a launch touches and diffing against the baseline.
+10.0s 118 [orbit_probe_source] garrison_launch.py:9:
+10.0s 119 [orbit_probe_source] garrison_launch.py:161:     if status.arrivals_by_owner is None:
+10.0s 120 [orbit_probe_source] garrison_launch.py:162:         raise ValueError(
+10.0s 121 [orbit_probe_source] garrison_launch.py:163:             "garrison status must carry arrivals_by_owner (build it from a "
+10.0s 122 [orbit_probe_source] garrison_launch.py:164:             "PlanetMovement with track_fleets=True)"
+10.0s 123 [orbit_probe_source] garrison_launch.py:165:         )
+10.0s 124 [orbit_probe_source] garrison_launch.py:166:     if status.pre_combat_owner is None or status.pre_combat_ships is None:
+10.0s 125 [orbit_probe_source] garrison_launch.py:167:         raise ValueError("garrison status must carry pre_combat_owner/ships")
+10.0s 126 [orbit_probe_source] garrison_launch.py:168:     if status.owner.dim() != 2:
+10.0s 127 [orbit_probe_source] garrison_launch.py:169:         raise ValueError(
+10.0s 128 [orbit_probe_source] file=geometry.py hits=20
+10.0s 129 [orbit_probe_source] geometry.py:9:
+10.0s 130 [orbit_probe_source] geometry.py:10: # Pre-compute log(1000) once as a plain Python float for efficiency.
+10.0s 131 [orbit_probe_source] geometry.py:11: _LOG_1000: float = float(torch.log(torch.tensor(1000.0)).item())
+10.0s 132 [orbit_probe_source] geometry.py:12: _FLEET_SPEED_LUT_MAX: int = 400
+10.0s 133 [orbit_probe_source] geometry.py:13:
+10.0s 134 [orbit_probe_source] geometry.py:14:
+10.0s 135 [orbit_probe_source] geometry.py:15: def _fleet_speed_formula(ships: Tensor) -> Tensor:
+10.1s 136 [orbit_probe_source] geometry.py:16:     """Exact engine-matching speed formula."""
+10.1s 137 [orbit_probe_source] geometry.py:17:     ratio = (torch.log(ships) / _LOG_1000).clamp(max=1.0)
+10.1s 138 [orbit_probe_source] geometry.py:18:     return 1.0 + (MAX_SHIP_SPEED - 1.0) * ratio.pow(1.5)
+10.1s 139 [orbit_probe_source] geometry.py:19:
+10.1s 140 [orbit_probe_source] geometry.py:20:
+10.1s 141 [orbit_probe_source] geometry.py:21: def _build_fleet_speed_lut(max_ships: int) -> Tensor:
+10.1s 142 [orbit_probe_source] geometry.py:22:     # Index 0 is unused but keeps indexing branch-free for ships >= 1.
+10.1s 143 [orbit_probe_source] geometry.py:23:     idx = torch.arange(max_ships + 1, dtype=torch.float32).clamp(min=1.0)
+10.1s 144 [orbit_probe_source] geometry.py:24:     return _fleet_speed_formula(idx)
+10.1s 145 [orbit_probe_source] geometry.py:25:
+10.1s 146 [orbit_probe_source] geometry.py:26:
+10.1s 147 [orbit_probe_source] geometry.py:27: _FLEET_SPEED_LUT: Tensor = _build_fleet_speed_lut(_FLEET_SPEED_LUT_MAX)
+10.1s 148 [orbit_probe_source] geometry.py:28: # Per-(device, dtype) cache of the LUT so a CUDA stream isn't synced by an
+10.1s 149 [orbit_probe_source] geometry.py:29: # H→D copy on every fleet_speed call. Module-level dict, populated lazily.
+10.1s 150 [orbit_probe_source] geometry.py:30: _FLEET_SPEED_LUT_CACHE: dict[tuple, Tensor] = {}
+10.1s 151 [orbit_probe_source] geometry.py:31:
+10.1s 152 [orbit_probe_source] geometry.py:32:
+10.1s 153 [orbit_probe_source] geometry.py:33: def _fleet_speed_lut_on(device: torch.device, dtype: torch.dtype) -> Tensor:
+10.1s 154 [orbit_probe_source] geometry.py:34:     key = (device, dtype)
+10.1s 155 [orbit_probe_source] geometry.py:35:     cached = _FLEET_SPEED_LUT_CACHE.get(key)
+10.1s 156 [orbit_probe_source] geometry.py:36:     if cached is None:
+10.1s 157 [orbit_probe_source] geometry.py:37:         cached = _FLEET_SPEED_LUT.to(device=device, dtype=dtype)
+10.1s 158 [orbit_probe_source] geometry.py:38:         _FLEET_SPEED_LUT_CACHE[key] = cached
+10.1s 159 [orbit_probe_source] geometry.py:39:     return cached
+10.1s 160 [orbit_probe_source] geometry.py:40:
+10.1s 161 [orbit_probe_source] geometry.py:41:
+10.1s 162 [orbit_probe_source] geometry.py:42: # ---------------------------------------------------------------------------
+10.1s 163 [orbit_probe_source] geometry.py:43: # Pairwise operations  [N] × [M]  →  [N, M]
+10.1s 164 [orbit_probe_source] geometry.py:50:
+10.1s 165 [orbit_probe_source] geometry.py:51:
+10.1s 166 [orbit_probe_source] geometry.py:52: # ---------------------------------------------------------------------------
+10.1s 167 [orbit_probe_source] geometry.py:53: # Fleet physics
+10.1s 168 [orbit_probe_source] geometry.py:54: # ---------------------------------------------------------------------------
+10.1s 169 [orbit_probe_source] geometry.py:55:
+10.1s 170 [orbit_probe_source] geometry.py:56: def fleet_speed(ships: Tensor) -> Tensor:
+10.1s 171 [orbit_probe_source] geometry.py:57:     """Travel speed for a fleet of ``ships`` ships.
+10.1s 172 [orbit_probe_source] geometry.py:58:
+10.1s 173 [orbit_probe_source] file=intercept_aim.py hits=14
+10.1s 174 [orbit_probe_source] intercept_aim.py:1: """Fixed-fleet intercept aim — sub-turn-accurate angle for an orbiting target.
+10.1s 175 [orbit_probe_source] intercept_aim.py:2:
+10.1s 176 [orbit_probe_source] intercept_aim.py:3: Solves the **continuous** intercept time ``t*`` (root of
+10.1s 177 [orbit_probe_source] intercept_aim.py:4: ``v·t = dist(target_pos(t), source) − gap`` with the target on its analytic
+10.1s 178 [orbit_probe_source] intercept_aim.py:5: orbit), aims at ``target_pos(t*)``, and verifies that angle with a
+10.1s 179 [orbit_probe_source] intercept_aim.py:6: fully-vectorized analytic first-contact check.
+10.1s 180 [orbit_probe_source] intercept_aim.py:19: import torch
+10.1s 181 [orbit_probe_source] intercept_aim.py:20: from torch import Tensor
+10.1s 182 [orbit_probe_source] intercept_aim.py:21:
+10.1s 183 [orbit_probe_source] intercept_aim.py:22: from .geometry import fleet_speed
+10.1s 184 [orbit_probe_source] intercept_aim.py:23: from .movement import PlanetMovement
+10.1s 185 [orbit_probe_source] intercept_aim.py:24: from .movement_aiming import (
+10.1s 186 [orbit_probe_source] intercept_aim.py:25:     LAUNCH_SURFACE_OFFSET,
+10.1s 187 [orbit_probe_source] intercept_aim.py:26:     TARGET_HIT_SURFACE_OFFSET,
+10.1s 188 [orbit_probe_source] intercept_aim.py:27:     _swept_pair_hit_mask,
+10.1s 189 [orbit_probe_source] intercept_aim.py:36:     movement: PlanetMovement,
+10.1s 190 [orbit_probe_source] intercept_aim.py:37:     source_slots: Tensor,
+10.1s 191 [orbit_probe_source] intercept_aim.py:38:     target_slots: Tensor,
+10.1s 192 [orbit_probe_source] intercept_aim.py:39:     fleet_sizes: Tensor,
+10.1s 193 [orbit_probe_source] intercept_aim.py:40:     *,
+10.1s 194 [orbit_probe_source] intercept_aim.py:41:     fp_iters: int = _FP_ITERS,
+10.1s 195 [orbit_probe_source] intercept_aim.py:42:     active: Tensor | None = None,
+10.1s 196 [orbit_probe_source] intercept_aim.py:43: ) -> dict[str, Tensor]:
+10.1s 197 [orbit_probe_source] intercept_aim.py:44:     """Continuous-intercept aim for a fixed fleet size (the root angle only).
+10.1s 198 [orbit_probe_source] intercept_aim.py:45:
+10.1s 199 [orbit_probe_source] intercept_aim.py:46:     Broadcastable slot/size tensors in; ``{angle, eta, viable}`` out (same shape).
+10.1s 200 [orbit_probe_source] intercept_aim.py:47:     Non-viable candidates get ``eta == inf``.
+10.1s 201 [orbit_probe_source] intercept_aim.py:48:
+10.1s 202 [orbit_probe_source] intercept_aim.py:49:     ``active`` (optional, broadcastable to the candidate shape): a reachability
+10.1s 203 [orbit_probe_source] intercept_aim.py:61:     src, tgt, ships = torch.broadcast_tensors(
+10.1s 204 [orbit_probe_source] intercept_aim.py:62:         source_slots.to(device=dev),
+10.1s 205 [orbit_probe_source] intercept_aim.py:63:         target_slots.to(device=dev),
+10.1s 206 [orbit_probe_source] intercept_aim.py:64:         fleet_sizes.to(device=dev, dtype=dt),
+10.1s 207 [orbit_probe_source] intercept_aim.py:65:     )
+10.1s 208 [orbit_probe_source] intercept_aim.py:66:     shape = src.shape
+10.1s 209 [orbit_probe_source] intercept_aim.py:67:     src = src.long().clamp(0, max(movement.P - 1, 0)).reshape(-1)
+10.1s 210 [orbit_probe_source] intercept_aim.py:68:     tgt = tgt.long().clamp(0, max(movement.P - 1, 0)).reshape(-1)
+10.1s 211 [orbit_probe_source] intercept_aim.py:69:     ships = ships.to(dt).clamp(min=1.0).reshape(-1)
+10.1s 212 [orbit_probe_source] intercept_aim.py:72:     sx, sy = movement.position_at_slots(src, 0)                       # [M]
+10.1s 213 [orbit_probe_source] intercept_aim.py:73:     src_r = movement.radii[src]
+10.1s 214 [orbit_probe_source] intercept_aim.py:74:     tgt_r = movement.radii[tgt]
+10.1s 215 [orbit_probe_source] intercept_aim.py:75:     speed = fleet_speed(ships).clamp(min=1e-6)                        # [M]
+10.1s 216 [orbit_probe_source] intercept_aim.py:76:
+10.1s 217 [orbit_probe_source] intercept_aim.py:77:     # Target orbit params from its integer positions: centre-relative radius +
+10.1s 218 [orbit_probe_source] intercept_aim.py:78:     # phase at t=0 and the per-step angular step (auto-zero for static planets).
+10.1s 219 [orbit_probe_source] intercept_aim.py:79:     t0x, t0y = movement.position_at_slots(tgt, 0)
+10.1s 220 [orbit_probe_source] intercept_aim.py:80:     t1x, t1y = movement.position_at_slots(tgt, 1)
+10.1s 221 [orbit_probe_source] intercept_aim.py:90:
+10.1s 222 [orbit_probe_source] intercept_aim.py:91:     # Continuous fixed point t = (dist(target_pos(t), src) - gap)/v, seeded with
+10.1s 223 [orbit_probe_source] intercept_aim.py:92:     # the static-target estimate. A contraction whenever the target's radial speed
+10.1s 224 [orbit_probe_source] intercept_aim.py:93:     # stays below the fleet speed (true for reachable shots); divergent guesses
+10.1s 225 [orbit_probe_source] intercept_aim.py:94:     # just produce a bad angle that the verify rejects.
+10.1s 226 [orbit_probe_source] intercept_aim.py:95:     d0 = torch.sqrt(((t0x - sx) ** 2 + (t0y - sy) ** 2).clamp(min=0.0))
+10.1s 227 [orbit_probe_source] intercept_aim.py:96:     t_star = ((d0 - gap) / speed).clamp(min=0.0, max=float(H))
+10.1s 228 [orbit_probe_source] intercept_aim.py:97:     for _ in range(int(fp_iters)):
+10.1s 229 [orbit_probe_source] intercept_aim.py:98:         tx, ty = target_pos(t_star)
+10.1s 230 [orbit_probe_source] intercept_aim.py:108:
+10.1s 231 [orbit_probe_source] intercept_aim.py:109:     # Relevant flight length = distance to the intercept (+margins for the arrival
+10.1s 232 [orbit_probe_source] intercept_aim.py:110:     # step and the target radius). Bounds the broad-phase cull segment to the
+10.1s 233 [orbit_probe_source] intercept_aim.py:111:     # fleet's actual launch→target path. Planets beyond the target can never be the
+10.1s 234 [orbit_probe_source] intercept_aim.py:112:     # first contact for a target-reaching fleet, so this preserves `viable`
+10.1s 235 [orbit_probe_source] intercept_aim.py:113:     # (contact==tgt) and the viable-case `eta` exactly.
+10.2s 236 [orbit_probe_source] intercept_aim.py:114:     eta_cap = (t_star + 2.0).clamp(max=float(H))
+10.2s 237 [orbit_probe_source] intercept_aim.py:115:     seg_len = speed * eta_cap + tgt_r + 2.0                            # [M]
+10.2s 238 [orbit_probe_source] intercept_aim.py:116:
+10.2s 239 [orbit_probe_source] intercept_aim.py:117:     px = movement.x[: H + 1, :]                                       # [H+1, P] (already cached)
+10.2s 240 [orbit_probe_source] intercept_aim.py:169:     seg_len: Tensor | None = None,
+10.2s 241 [orbit_probe_source] intercept_aim.py:170:     max_bytes: int = 256 * 1024 * 1024,
+10.2s 242 [orbit_probe_source] intercept_aim.py:171: ):
+10.2s 243 [orbit_probe_source] intercept_aim.py:172:     """First planet a fleet contacts, engine-faithful, shaped ``[M, C]``.
+10.2s 244 [orbit_probe_source] intercept_aim.py:173:
+10.2s 245 [orbit_probe_source] intercept_aim.py:174:     Reproduces batch ``_move_fleets`` exactly: straight fleet motion at ``speed``,
+10.2s 246 [orbit_probe_source] intercept_aim.py:175:     swept-pair collision vs every step-0-alive planet, OOB + point-to-segment sun
+10.2s 247 [orbit_probe_source] intercept_aim.py:176:     kill (only when no planet was hit that step), and the lowest-slot same-step
+10.2s 248 [orbit_probe_source] intercept_aim.py:177:     tie-break. ``launch_*``/``cos_a``/``sin_a``/``speed`` are ``[M]``; ``px``,
+10.2s 249 [orbit_probe_source] intercept_aim.py:178:     ``py`` are ``[H+1, P]`` planet positions per step; ``p_alive0`` is ``[P]``
+10.2s 250 [orbit_probe_source] intercept_aim.py:179:     (step-0 alive); ``radii`` is ``[P]``.
+10.2s 251 [orbit_probe_source] intercept_aim.py:180:     Returns ``(contact_slot, eta)`` — ``contact_slot == -1`` and ``eta == H`` when
+10.2s 252 [orbit_probe_source] intercept_aim.py:181:     the fleet contacts no planet (or dies first).
+10.2s 253 [orbit_probe_source] intercept_aim.py:182:
+10.2s 254 [orbit_probe_source] intercept_aim.py:183:     Two-phase to keep the exact swept-pair off the common clear-shot path:
+10.2s 255 [orbit_probe_source] intercept_aim.py:184:
+10.2s 256 [orbit_probe_source] intercept_aim.py:185:     * **Broad phase** — an AABB cull (the fleet's full-horizon segment box vs each
+10.2s 257 [orbit_probe_source] intercept_aim.py:186:       planet's swept box inflated by its radius). A planet whose box can't overlap
+10.2s 258 [orbit_probe_source] file=movement.py hits=269
+10.2s 259 [orbit_probe_source] movement.py:1: """Future planet/comet movement cache + garrison projection for one game.
+10.2s 260 [orbit_probe_source] movement.py:2:
+10.2s 261 [orbit_probe_source] movement.py:3: ``PlanetMovement`` predicts planet and comet positions from an observation, keeps
+10.2s 262 [orbit_probe_source] movement.py:4: a short rolling horizon, tracks in-flight fleets, and projects per-planet owner /
+10.2s 263 [orbit_probe_source] movement.py:5: ships over the horizon (the do-nothing garrison forecast agents plan against).
+10.2s 264 [orbit_probe_source] movement.py:6: """
+10.2s 265 [orbit_probe_source] movement.py:7:
+10.2s 266 [orbit_probe_source] movement.py:8: from __future__ import annotations
+10.2s 267 [orbit_probe_source] movement.py:9:
+10.2s 268 [orbit_probe_source] movement.py:13: from torch import Tensor
+10.2s 269 [orbit_probe_source] movement.py:14:
+10.2s 270 [orbit_probe_source] movement.py:15: from .aiming import orbit_phase_index_from_obs_step
+10.2s 271 [orbit_probe_source] movement.py:16: from .geometry import fleet_speed
+10.2s 272 [orbit_probe_source] movement.py:17: from .obs import parse_obs
+10.2s 273 [orbit_probe_source] movement.py:18: from .constants import BOARD_SIZE, CENTER, SUN_RADIUS
+10.2s 274 [orbit_probe_source] movement.py:19:
+10.2s 275 [orbit_probe_source] movement.py:20:
+10.2s 276 [orbit_probe_source] movement.py:21: DEFAULT_MOVEMENT_HORIZON = 20
+10.2s 277 [orbit_probe_source] movement.py:22: DEFAULT_DRIFT_EPSILON = 1e-4
+10.2s 278 [orbit_probe_source] movement.py:23: DEFAULT_MAX_TRACKED_FLEETS = 64
+10.2s 279 [orbit_probe_source] movement.py:24:
+10.2s 280 [orbit_probe_source] movement.py:25:
+10.2s 281 [orbit_probe_source] movement.py:26: @dataclass(frozen=True)
+10.2s 282 [orbit_probe_source] movement.py:27: class MovementConfig:
+10.2s 283 [orbit_probe_source] movement.py:28:     """Configuration for ``PlanetMovement`` construction and updates."""
+10.2s 284 [orbit_probe_source] movement.py:29:
+10.2s 285 [orbit_probe_source] movement.py:30:     movement_horizon: int = DEFAULT_MOVEMENT_HORIZON
+10.2s 286 [orbit_probe_source] movement.py:31:     drift_epsilon: float = DEFAULT_DRIFT_EPSILON
+10.2s 287 [orbit_probe_source] movement.py:32:     track_fleets: bool = False
+10.2s 288 [orbit_probe_source] movement.py:33:     player_count: int | None = None
+10.2s 289 [orbit_probe_source] movement.py:34:     max_tracked_fleets: int = DEFAULT_MAX_TRACKED_FLEETS
+10.2s 290 [orbit_probe_source] movement.py:35:
+10.2s 291 [orbit_probe_source] movement.py:36:
+10.2s 292 [orbit_probe_source] movement.py:37:
+10.2s 293 [orbit_probe_source] movement.py:38: @dataclass(frozen=True)
+10.2s 294 [orbit_probe_source] movement.py:39: class PlanetGarrisonStatus:
+10.2s 295 [orbit_probe_source] movement.py:49:     planning their own arrival on step ``k`` should consult these (plus the
+10.2s 296 [orbit_probe_source] movement.py:50:     per-step ``arrivals_by_owner``) and apply the engine combat rule themselves:
+10.2s 297 [orbit_probe_source] movement.py:51:     treating their own send as an additional same-step attacker. They are
+10.2s 298 [orbit_probe_source] movement.py:52:     populated only when fleet tracking is enabled.
+10.2s 299 [orbit_probe_source] movement.py:53:
+10.2s 300 [orbit_probe_source] movement.py:54:     ``arrivals_by_owner`` mirrors ``PlanetMovement.fleet_buckets`` at the
+10.2s 301 [orbit_probe_source] movement.py:55:     requested planet slots: per-step per-owner ship totals arriving on a given
+10.2s 302 [orbit_probe_source] movement.py:56:     target. Shape ``[*prefix, H, A]`` where ``A`` is the number of agents. ``None``
+10.2s 303 [orbit_probe_source] movement.py:57:     when fleet tracking is off.
+10.2s 304 [orbit_probe_source] movement.py:58:     """
+10.2s 305 [orbit_probe_source] movement.py:59:
+10.2s 306 [orbit_probe_source] movement.py:60:     owner: Tensor
+10.2s 307 [orbit_probe_source] movement.py:61:     ships: Tensor
+10.2s 308 [orbit_probe_source] movement.py:62:     pre_combat_owner: Tensor | None = None
+10.2s 309 [orbit_probe_source] movement.py:74:     - ``x``, ``y``, ``alive_by_step``: ``[H + 1, P]``
+10.2s 310 [orbit_probe_source] movement.py:75:     - ``planet_ids``, ``radii``: ``[P]``
+10.2s 311 [orbit_probe_source] movement.py:76:     - ``base_step``: scalar
+10.2s 312 [orbit_probe_source] movement.py:77:     - optional ``fleet_buckets``: ``[P, H, A]``
+10.2s 313 [orbit_probe_source] movement.py:78:
+10.2s 314 [orbit_probe_source] movement.py:79:     ``k == 0`` is the observation frame used to build the cache, and ``k`` is
+10.2s 315 [orbit_probe_source] movement.py:80:     the number of future movement steps from that frame.
+10.2s 316 [orbit_probe_source] movement.py:81:     """
+10.2s 317 [orbit_probe_source] movement.py:82:
+10.2s 318 [orbit_probe_source] movement.py:93:     comet_path_index: Tensor
+10.2s 319 [orbit_probe_source] movement.py:94:     movement_horizon: int = DEFAULT_MOVEMENT_HORIZON
+10.2s 320 [orbit_probe_source] movement.py:95:     drift_epsilon: float = DEFAULT_DRIFT_EPSILON
+10.2s 321 [orbit_probe_source] movement.py:96:     track_fleets: bool = False
+10.2s 322 [orbit_probe_source] movement.py:97:     player_count: int | None = None
+10.2s 323 [orbit_probe_source] movement.py:98:     max_tracked_fleets: int = DEFAULT_MAX_TRACKED_FLEETS
+10.2s 324 [orbit_probe_source] movement.py:99:     fleet_buckets: Tensor | None = None
+10.2s 325 [orbit_probe_source] movement.py:100:     fleet_last_step: Tensor | None = None
+10.2s 326 [orbit_probe_source] movement.py:101:     tracked_fleet_ids: Tensor | None = None
+10.2s 327 [orbit_probe_source] movement.py:102:     tracked_fleet_eta: Tensor | None = None
+10.2s 328 [orbit_probe_source] movement.py:103:     tracked_fleet_target_slot: Tensor | None = None
+10.2s 329 [orbit_probe_source] file=movement_aiming.py hits=3
+10.2s 330 [orbit_probe_source] movement_aiming.py:1: """Aiming helpers backed by :class:`PlanetMovement`.
+10.2s 331 [orbit_probe_source] movement_aiming.py:2:
+10.2s 332 [orbit_probe_source] movement_aiming.py:3: This module is intentionally small: it solves angle/ETA for concrete
+10.2s 333 [orbit_probe_source] movement_aiming.py:4: ``(source_slot, target_slot, fleet_size)`` candidates using cached future planet
+10.2s 334 [orbit_probe_source] movement_aiming.py:5: positions, then masks candidates whose straight path crosses the sun or another
+10.3s 335 [orbit_probe_source] movement_aiming.py:6: planet.
+10.3s 336 [orbit_probe_source] movement_aiming.py:7: """
+10.3s 337 [orbit_probe_source] movement_aiming.py:8:
+10.3s 338 [orbit_probe_source] movement_aiming.py:9: from __future__ import annotations
+10.3s 339 [orbit_probe_source] movement_aiming.py:14: from .constants import SUN_RADIUS
+10.3s 340 [orbit_probe_source] movement_aiming.py:15:
+10.3s 341 [orbit_probe_source] movement_aiming.py:16: LAUNCH_SURFACE_OFFSET: float = 0.1
+10.3s 342 [orbit_probe_source] movement_aiming.py:17: """Fleet launch offset from source surface.
+10.3s 343 [orbit_probe_source] movement_aiming.py:18:
+10.3s 344 [orbit_probe_source] movement_aiming.py:19: Matches Kaggle Orbit Wars engine launch placement:
+10.3s 345 [orbit_probe_source] movement_aiming.py:20: ``start = source + unit(angle) * (source_radius + 0.1)``.
+10.3s 346 [orbit_probe_source] movement_aiming.py:21: """
+10.3s 347 [orbit_probe_source] movement_aiming.py:22:
+10.3s 348 [orbit_probe_source] movement_aiming.py:23: TARGET_HIT_SURFACE_OFFSET: float = 0.0
+10.3s 349 [orbit_probe_source] movement_aiming.py:24: """Extra target-surface margin for hit ETA estimation.
+10.3s 350 [orbit_probe_source] movement_aiming.py:25:
+10.3s 351 [orbit_probe_source] movement_aiming.py:26: Kaggle/local engines register fleet-vs-planet contact when the fleet center
+10.3s 352 [orbit_probe_source] movement_aiming.py:27: enters the target planet radius. ``0.0`` keeps ETA aligned with that rule.
+10.3s 353 [orbit_probe_source] movement_aiming.py:28: """
+10.3s 354 [orbit_probe_source] movement_aiming.py:29:
+10.3s 355 [orbit_probe_source] movement_aiming.py:30: KAGGLE_SUN_RADIUS: float = SUN_RADIUS
+10.3s 356 [orbit_probe_source] movement_aiming.py:31: """Sun collision radius used by Kaggle/local engines."""
+10.3s 357 [orbit_probe_source] file=movement_step.py hits=35
+10.3s 358 [orbit_probe_source] movement_step.py:9: from .movement import (
+10.3s 359 [orbit_probe_source] movement_step.py:10:     MovementConfig,
+10.3s 360 [orbit_probe_source] movement_step.py:11:     PlanetMovement,
+10.3s 361 [orbit_probe_source] movement_step.py:12:     _estimate_new_fleet_arrivals,
+10.3s 362 [orbit_probe_source] movement_step.py:13: )
+10.3s 363 [orbit_probe_source] movement_step.py:14:
+10.3s 364 [orbit_probe_source] movement_step.py:15:
+10.3s 365 [orbit_probe_source] movement_step.py:16: @dataclass(frozen=True)
+10.3s 366 [orbit_probe_source] movement_step.py:17: class PlannedLaunches:
+10.3s 367 [orbit_probe_source] movement_step.py:21:     target_slots: Tensor
+10.3s 368 [orbit_probe_source] movement_step.py:22:     eta_turns: Tensor
+10.3s 369 [orbit_probe_source] movement_step.py:23:     valid: Tensor
+10.3s 370 [orbit_probe_source] movement_step.py:24:     fleet_ids: Tensor
+10.3s 371 [orbit_probe_source] movement_step.py:25:
+10.3s 372 [orbit_probe_source] movement_step.py:26:
+10.3s 373 [orbit_probe_source] movement_step.py:27:
+10.3s 374 [orbit_probe_source] movement_step.py:28: @dataclass(frozen=True)
+10.3s 375 [orbit_probe_source] movement_step.py:29: class LaunchEntries:
+10.3s 376 [orbit_probe_source] movement_step.py:40:     the engine debits sources sequentially in entry order, so callers should
+10.3s 377 [orbit_probe_source] movement_step.py:41:     plan against running residuals rather than the original budget.
+10.3s 378 [orbit_probe_source] movement_step.py:42:
+10.3s 379 [orbit_probe_source] movement_step.py:43:     Entry order also defines the launch dispatch order — fleet IDs assigned
+10.3s 380 [orbit_probe_source] movement_step.py:44:     via :func:`infer_planned_launches_from_entries` increase in cumulative
+10.3s 381 [orbit_probe_source] movement_step.py:45:     order over valid entries, matching the engine's ``cumsum`` rule for
+10.3s 382 [orbit_probe_source] movement_step.py:46:     sparse launch payloads.
+10.3s 383 [orbit_probe_source] movement_step.py:47:     """
+10.3s 384 [orbit_probe_source] movement_step.py:48:
+10.3s 385 [orbit_probe_source] movement_step.py:87: ) -> LaunchEntries:
+10.3s 386 [orbit_probe_source] movement_step.py:88:     """Perturb angle on duplicate launches so they're tracker-distinguishable.
+10.3s 387 [orbit_probe_source] movement_step.py:89:
+10.3s 388 [orbit_probe_source] movement_step.py:90:     The engine's slot-order fleet-id assignment plus the agent's
+10.3s 389 [orbit_probe_source] movement_step.py:91:     reconciliation by ``(owner, source, ships, angle)`` cannot disambiguate
+10.3s 390 [orbit_probe_source] movement_step.py:92:     two pending entries that share the full tuple, even though the engine
+10.3s 391 [orbit_probe_source] movement_step.py:93:     creates two distinct fleets. ``PlanetMovement._reconcile_pending_own_launches``
+10.3s 392 [orbit_probe_source] movement_step.py:94:     hard-fails on such collisions ("multiple pending entries resolved to the
+10.3s 393 [orbit_probe_source] movement_step.py:95:     same engine fleet id …").
+10.3s 394 [orbit_probe_source] movement_step.py:96:
+10.3s 395 [orbit_probe_source] movement_step.py:97:     This helper finds entries that share ``(source, angle, ships)`` with an
+10.3s 396 [orbit_probe_source] movement_step.py:98:     earlier valid entry in the same lane and adds ``k * epsilon`` to the
+10.3s 397 [orbit_probe_source] movement_step.py:99:     angle of the k-th duplicate. ``epsilon = 1e-5`` rad is well above
+10.3s 398 [orbit_probe_source] movement_step.py:100:     float32's ULP at angle magnitude ~1 (≈6e-8) and well below any
+10.3s 399 [orbit_probe_source] movement_step.py:101:     behaviorally-meaningful aim error (5e-4 unit displacement at 50-unit
+10.3s 400 [orbit_probe_source] movement_step.py:102:     fleet range — sub-planet-radius).
+10.3s 401 [orbit_probe_source] movement_step.py:103:
+10.3s 402 [orbit_probe_source] movement_step.py:104:     Both the engine action (``_entries_to_sparse_payload``) and the stash
+10.3s 403 [orbit_probe_source] movement_step.py:105:     (``infer_planned_launches_from_entries``) read ``entries.angle``, so
+10.3s 404 [orbit_probe_source] movement_step.py:106:     applying the perturbation here keeps both branches consistent — the
+10.3s 405 [orbit_probe_source] movement_step.py:107:     engine creates fleets with the perturbed angle, the obs reports the
+10.3s 406 [orbit_probe_source] movement_step.py:108:     perturbed angle, and the stash matches.
+10.3s 407 [orbit_probe_source] movement_step.py:109:     """
+10.3s 408 [orbit_probe_source] movement_step.py:110:     src = entries.source_slots                                                 # [L]
+10.3s 409 [orbit_probe_source] movement_step.py:111:     ang = entries.angle                                                         # [L]
+10.3s 410 [orbit_probe_source] movement_step.py:112:     ships = entries.ships                                                       # [L]
+10.3s 411 [orbit_probe_source] movement_step.py:165:     return PlanetMovement.from_obs_tensors(obs_tensors, config=expected_cfg)
+10.3s 412 [orbit_probe_source] movement_step.py:166:
+10.3s 413 [orbit_probe_source] movement_step.py:167:
+10.3s 414 [orbit_probe_source] movement_step.py:168: def _resolve_player_next_fleet_id(
+10.3s 415 [orbit_probe_source] movement_step.py:169:     obs_tensors: dict,
+10.3s 416 [orbit_probe_source] movement_step.py:170:     *,
+10.3s 417 [orbit_probe_source] movement_step.py:171:     device: torch.device,
+10.3s 418 [orbit_probe_source] movement_step.py:172: ) -> Tensor:
+10.3s 419 [orbit_probe_source] movement_step.py:173:     next_fleet_id = obs_tensors.get("player_next_fleet_id", obs_tensors.get("next_fleet_id"))
+10.3s 420 [orbit_probe_source] movement_step.py:174:     if next_fleet_id is None:
+10.3s 421 [orbit_probe_source] movement_step.py:175:         return torch.zeros((), dtype=torch.long, device=device)
+10.3s 422 [orbit_probe_source] movement_step.py:176:     return next_fleet_id.to(device=device, dtype=torch.long)
+10.3s 423 [orbit_probe_source] movement_step.py:177:
+10.3s 424 [orbit_probe_source] movement_step.py:178:
+10.3s 425 [orbit_probe_source] movement_step.py:179: def infer_planned_launches_from_entries(
+10.3s 426 [orbit_probe_source] movement_step.py:180:     *,
+10.3s 427 [orbit_probe_source] movement_step.py:181:     obs_tensors: dict,
+10.3s 428 [orbit_probe_source] file=obs.py hits=24
+10.4s 429 [orbit_probe_source] obs.py:1: """Canonical observation parsing into a named :class:`ParsedObs` dataclass.
+10.4s 430 [orbit_probe_source] obs.py:2:
+10.4s 431 [orbit_probe_source] obs.py:3: Converts the raw 7-field observation tensors (produced by
+10.4s 432 [orbit_probe_source] obs.py:4: :func:`adapter.single_obs_to_tensor`) into named per-planet/per-fleet fields.
+10.4s 433 [orbit_probe_source] obs.py:5:
+10.4s 434 [orbit_probe_source] obs.py:6: Field index definitions
+10.4s 435 [orbit_probe_source] obs.py:7: -----------------------
+10.4s 436 [orbit_probe_source] obs.py:8: ``planets`` / ``initial_planets``  ``[P, 7]`` float32::
+10.4s 437 [orbit_probe_source] obs.py:9:
+10.4s 438 [orbit_probe_source] obs.py:15:     5 – ships       (current count)
+10.4s 439 [orbit_probe_source] obs.py:16:     6 – production  (ships added per turn when owned)
+10.4s 440 [orbit_probe_source] obs.py:17:
+10.4s 441 [orbit_probe_source] obs.py:18: ``fleets``  ``[F, 7]`` float32::
+10.4s 442 [orbit_probe_source] obs.py:19:
+10.4s 443 [orbit_probe_source] obs.py:20:     0 – fleet_id    (alive sentinel: id >= 0)
+10.4s 444 [orbit_probe_source] obs.py:21:     1 – owner
+10.4s 445 [orbit_probe_source] obs.py:22:     2 – x
+10.4s 446 [orbit_probe_source] obs.py:23:     3 – y
+10.4s 447 [orbit_probe_source] obs.py:24:     4 – angle       (radians)
+10.4s 448 [orbit_probe_source] obs.py:25:     5 – from_planet_id
+10.4s 449 [orbit_probe_source] obs.py:73:     angvel: Tensor      # [B] float – board angular velocity (rad/turn)
+10.4s 450 [orbit_probe_source] obs.py:74:     step: Tensor        # [B] float – current game step
+10.4s 451 [orbit_probe_source] obs.py:75:
+10.4s 452 [orbit_probe_source] obs.py:76:     # --- fleet fields -------------------------------------------------------
+10.4s 453 [orbit_probe_source] obs.py:77:     #  Available when parse_obs is called with include_fleets=True;
+10.4s 454 [orbit_probe_source] obs.py:78:     #  shapes are [F, *] and accessed as attributes rather than being
+10.4s 455 [orbit_probe_source] obs.py:79:     #  indexed per-column.
+10.4s 456 [orbit_probe_source] obs.py:80:     f_alive: Tensor     # [F] bool
+10.4s 457 [orbit_probe_source] obs.py:81:     f_owner: Tensor     # [F] float – absolute owner
+10.4s 458 [orbit_probe_source] obs.py:82:     f_x: Tensor         # [F] float
+10.4s 459 [orbit_probe_source] obs.py:83:     f_y: Tensor         # [F] float
+10.4s 460 [orbit_probe_source] obs.py:84:     f_angle: Tensor     # [F] float – radians
+10.4s 461 [orbit_probe_source] obs.py:85:     f_ships: Tensor     # [F] float
+10.4s 462 [orbit_probe_source] obs.py:86:
+10.4s 463 [orbit_probe_source] obs.py:87:     # --- metadata -----------------------------------------------------------
+10.4s 464 [orbit_probe_source] obs.py:88:     player_id: int
+10.4s 465 [orbit_probe_source] obs.py:89:     P: int
+10.4s 466 [orbit_probe_source] obs.py:90:     F: int
+10.4s 467 [orbit_probe_source] obs.py:92:
+10.4s 468 [orbit_probe_source] obs.py:93:
+10.4s 469 [orbit_probe_source] obs.py:94: # ---------------------------------------------------------------------------
+10.4s 470 [orbit_probe_source] obs.py:95: # parse_obs
+10.4s 471 [orbit_probe_source] obs.py:96: # ---------------------------------------------------------------------------
+10.4s 472 [orbit_probe_source] obs.py:97:
+10.4s 473 [orbit_probe_source] obs.py:98: def parse_obs(obs_tensors: dict, player_id: int | None = None) -> ParsedObs:
+10.4s 474 [orbit_probe_source] obs.py:99:     """Decode a raw batch observation dict into a :class:`ParsedObs`.
+10.4s 475 [orbit_probe_source] obs.py:100:
+10.4s 476 [orbit_probe_source] obs.py:101:     Args:
+10.4s 477 [orbit_probe_source] obs.py:102:         obs_tensors: dict as produced by ``adapter.single_obs_to_tensor`` or
+10.4s 478 [orbit_probe_source] obs.py:103:                      Required keys:
+10.4s 479 [orbit_probe_source] obs.py:104:                      ``"planets"`` ``[P, 7]``,
+10.4s 480 [orbit_probe_source] obs.py:105:                      ``"initial_planets"`` ``[P, 7]``,
+10.4s 481 [orbit_probe_source] obs.py:106:                      ``"fleets"`` ``[F, 7]``,
+10.4s 482 [orbit_probe_source] obs.py:107:                      ``"angular_velocity"`` scalar,
+10.4s 483 [orbit_probe_source] obs.py:108:                      ``"step"`` scalar,
+10.4s 484 [orbit_probe_source] obs.py:109:                      ``"player"`` scalar.
+10.4s 485 [orbit_probe_source] obs.py:110:         player_id:   Which player to compute ownership masks for.  Defaults
+10.4s 486 [orbit_probe_source] obs.py:111:                      to ``int(obs_tensors["player"][0])``.
+10.4s 487 [orbit_probe_source] obs.py:115:     """
+10.4s 488 [orbit_probe_source] obs.py:116:     planets = obs_tensors["planets"]          # [P, 7]
+10.4s 489 [orbit_probe_source] obs.py:117:     initial = obs_tensors["initial_planets"]  # [P, 7]
+10.4s 490 [orbit_probe_source] obs.py:118:     fleets = obs_tensors["fleets"]            # [F, 7]
+10.4s 491 [orbit_probe_source] obs.py:119:     angvel = obs_tensors["angular_velocity"].float()  # scalar
+10.4s 492 [orbit_probe_source] obs.py:120:     step = obs_tensors["step"].float()        # scalar
+10.4s 493 [orbit_probe_source] obs.py:121:
+10.4s 494 [orbit_probe_source] obs.py:122:     if player_id is None:
+10.4s 495 [orbit_probe_source] obs.py:123:         player_id = int(obs_tensors["player"].flatten()[0].item())
+10.4s 496 [orbit_probe_source] file=planner_core.py hits=7
+10.4s 497 [orbit_probe_source] planner_core.py:13:
+10.4s 498 [orbit_probe_source] planner_core.py:14: from .garrison_launch import GarrisonFlowDiff, LaunchSet, sparse_launch_flow_delta
+10.4s 499 [orbit_probe_source] planner_core.py:15: from .movement import PlanetGarrisonStatus, PlanetMovement
+10.4s 500 [orbit_probe_source] planner_core.py:16: from .geometry import fleet_speed
+10.4s 501 [orbit_probe_source] planner_core.py:17: from .intercept_aim import intercept_angle
+10.4s 502 [orbit_probe_source] planner_core.py:18: from .movement_aiming import LAUNCH_SURFACE_OFFSET, TARGET_HIT_SURFACE_OFFSET
+10.4s 503 [orbit_probe_source] planner_core.py:19: from .movement_step import LaunchEntries
+10.4s 504 [orbit_probe_source] planner_core.py:20: from .distance_cache import min_distance_to_targets
+10.4s 505 [orbit_probe_source] planner_core.py:21:
+10.4s 506 [orbit_probe_source] planner_core.py:300:     *,
+10.4s 507 [orbit_probe_source] planner_core.py:301:     source_idx: Tensor,      # [S] long
+10.4s 508 [orbit_probe_source] planner_core.py:302:     target_idx: Tensor,      # [T] long
+10.4s 509 [orbit_probe_source] planner_core.py:303:     fleet_sizes: Tensor,     # [S, T, G] float
+10.4s 510 [orbit_probe_source] planner_core.py:304:     eta_cap: Tensor,         # [T] float (per-target reach cap)
+10.4s 511 [orbit_probe_source] planner_core.py:305:     eps: float = 1e-4,
+10.4s 512 [orbit_probe_source] planner_core.py:306: ) -> Tensor:
+10.4s 513 [orbit_probe_source] planner_core.py:307:     """Strict-superset reachability gate for the body screen, ``[S, T, G]`` bool.
+10.4s 514 [orbit_probe_source] planner_core.py:308:
+10.4s 515 [orbit_probe_source] planner_core.py:309:     A cell is reachable iff some step interval ``k in [1, eta_cap[b,t]]`` admits the
+10.4s 516 [orbit_probe_source] planner_core.py:310:     straight-line shot: ``(d_k - gap) <= fleet_speed(size) * k * (1 + eps)`` where
+10.4s 517 [orbit_probe_source] planner_core.py:311:     ``d_k`` is the distance from the source centre @ turn 0 to the target's **swept
+10.4s 518 [orbit_probe_source] planner_core.py:312:     segment** ``[tgt@(k-1), tgt@k]`` and ``gap = src_r + tgt_r + offsets``.
+10.4s 519 [orbit_probe_source] planner_core.py:313:
+10.4s 520 [orbit_probe_source] planner_core.py:314:     Using the swept segment (not the point ``tgt@k``) and the surface gap makes this
+10.4s 521 [orbit_probe_source] planner_core.py:315:     a provable *necessary condition* for ``intercept_angle`` viability: a viable shot
+10.4s 522 [orbit_probe_source] planner_core.py:320:     never false-prunes a launch the agent would otherwise aim. ``intercept_angle``
+10.4s 523 [orbit_probe_source] planner_core.py:321:     re-validates every survivor, so the surplus kept beyond true viability is harmless.
+10.4s 524 [orbit_probe_source] planner_core.py:322:     """
+10.4s 525 [orbit_probe_source] planner_core.py:323:     S, T, G = fleet_sizes.shape
+10.4s 526 [orbit_probe_source] planner_core.py:324:     P = int(movement.P)
+10.4s 527 [orbit_probe_source] planner_core.py:325:     dt = movement.dtype
+10.4s 528 [orbit_probe_source] planner_core.py:326:     K = max(1, min(int(movement.movement_horizon), int(torch.ceil(eta_cap.max()).item())))
+10.4s 529 [orbit_probe_source] planner_core.py:327:     src = source_idx.clamp(0, P - 1)
+10.4s 530 [orbit_probe_source] planner_core.py:328:     tgt = target_idx.clamp(0, P - 1)
+10.4s 531 [orbit_probe_source] planner_core.py:354:     ratio = torch.where(within, ratio, torch.full_like(ratio, float("inf")))
+10.4s 532 [orbit_probe_source] planner_core.py:355:     min_ratio = ratio.amin(dim=1)                                          # [S,T]
+10.4s 533 [orbit_probe_source] planner_core.py:356:
+10.4s 534 [orbit_probe_source] planner_core.py:357:     speed = fleet_speed(fleet_sizes.clamp(min=1.0))                          # [S,T,G]
+10.4s 535 [orbit_probe_source] planner_core.py:358:     reachable = min_ratio.unsqueeze(-1) <= speed * (1.0 + float(eps))        # [S,T,G]
+10.5s 536 [orbit_probe_source] planner_core.py:359:     distinct = (src.view(S, 1) != tgt.view(1, T)).unsqueeze(-1)             # [S,T,1]
+10.5s 537 [orbit_probe_source] planner_core.py:360:     return reachable & distinct
+10.5s 538 [orbit_probe_source] planner_core.py:361:
+10.5s 539 [orbit_probe_source] planner_core.py:362:
+10.5s 540 [orbit_probe_source] planner_core.py:443:     Moves ships from low-pressure planets toward nearby higher-pressure owned
+10.5s 541 [orbit_probe_source] planner_core.py:444:     planets, capped by ``safe_drain`` (minus what attacks already drew), only when
+10.5s 542 [orbit_probe_source] planner_core.py:445:     the destination is materially more stressed, reachable within
+10.5s 543 [orbit_probe_source] planner_core.py:446:     ``max_regroup_time``, and **still owned at the fleet's arrival turn**.
+10.5s 544 [orbit_probe_source] planner_core.py:447:     """
+10.5s 545 [orbit_probe_source] planner_core.py:448:     P = obs.P
+10.5s 546 [orbit_probe_source] planner_core.py:449:     device = obs.device
+10.5s 547 [orbit_probe_source] planner_core.py:450:     dtype = original_ships.dtype
+10.5s 548 [orbit_probe_source] planner_core.py:451:     pid = int(obs.player_id)
+10.5s 549 [orbit_probe_source] planner_core.py:485:     # source can reach within max_regroup_time (bit-identical to the ungated path).
+10.5s 550 [orbit_probe_source] planner_core.py:486:     regroup_active = reachable_mask(
+10.5s 551 [orbit_probe_source] planner_core.py:487:         movement, source_idx=src_idx, target_idx=dst_idx,
+10.5s 552 [orbit_probe_source] planner_core.py:488:         fleet_sizes=regroup_cap.view(S, 1, 1).expand(S, T, 1),
+10.5s 553 [orbit_probe_source] planner_core.py:489:         eta_cap=torch.full((T,), float(config.max_regroup_time), device=device),
+10.5s 554 [orbit_probe_source] planner_core.py:490:     ).squeeze(-1)                                                                # [S, T]
+10.5s 555 [orbit_probe_source] planner_core.py:491:     aim = intercept_angle(
+10.5s 556 [orbit_probe_source] planner_core.py:492:         movement,
+10.5s 557 [orbit_probe_source] planner_core.py:493:         src_idx.unsqueeze(1),                                                    # [S, 1]
+10.5s 558 [orbit_probe_source] end orbit_lite source probe
+14.4s 559 /usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\|'
+14.4s 560 cells[i][c] = re.sub('\\\\\|', '|', cell)
+14.6s 561 /usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\_'
+14.6s 562 text = re.sub(r'_', '\_', text) # Escape underscores in display text
+15.3s 563 [NbConvertApp] Converting notebook __notebook__.ipynb to notebook
+15.8s 564 [NbConvertApp] Writing 85222 bytes to __notebook__.ipynb
+19.0s 565 [NbConvertApp] Converting notebook __notebook__.ipynb to html
+20.1s 566 [NbConvertApp] Writing 445539 bytes to __results__.html
